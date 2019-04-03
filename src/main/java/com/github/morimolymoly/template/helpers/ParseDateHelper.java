@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package test.maven_test;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.helpers.DateOffset;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.helpers.HandlebarsHelper;
+package com.github.morimolymoly.template.helpers;
+
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import com.github.jknack.handlebars.Options;
+import com.github.tomakehurst.wiremock.common.Exceptions;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
-public class HandlebarsCurrentDateHelper2 extends HandlebarsHelper<Date> {
-	@Override
-	public Object apply(Date context, Options options) throws IOException {
+public class ParseDateHelper extends HandlebarsHelper<String> {
+
+    @Override
+    public Object apply(String context, Options options) throws IOException {
         String format = options.hash("format", null);
-        String offset = options.hash("offset", null);
-        String timezone = options.hash("timezone", null);
 
-        Date date = context != null ? context : new Date();
-        if (offset != null) {
-            date = new DateOffset(offset).shift(date);
+        try {
+            return format == null ?
+                new ISO8601DateFormat().parse(context) :
+                new SimpleDateFormat(format).parse(context);
+        } catch (ParseException e) {
+            return Exceptions.throwUnchecked(e, Object.class);
         }
-
-        return new RenderableDate2(date, format, timezone);
     }
 }

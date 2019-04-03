@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package test.maven_test;
-import com.github.jknack.handlebars.Helper;
-import com.github.jknack.handlebars.Options;
-
-import java.io.IOException;
+package com.github.morimolymoly.template.helpers;
 
 /**
- * This enum is implemented similar to the StringHelpers of handlebars.
- * It is basically a library of all available wiremock helpers
+ * This class uses HandlebarsXmlHelper as a base an just set a prefix which reduce the written handlebars helper to the
+ * relevant part
  */
-public enum WireMockHelpers2 implements Helper<Object> {
-    now2 {
-        private HandlebarsCurrentDateHelper2 helper = new HandlebarsCurrentDateHelper2();
-        @Override
-        public Object apply(final Object context, final Options options) throws IOException {
-            return this.helper.apply(null, options);
-        }
+public class HandlebarsSoapHelper extends HandlebarsXPathHelper {
+
+    @Override
+    protected String getXPathPrefix() {
+        return "/Envelope/Body/";
     }
 }

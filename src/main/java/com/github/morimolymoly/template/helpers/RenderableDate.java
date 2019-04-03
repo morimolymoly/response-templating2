@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package test.maven_test;
+package com.github.morimolymoly.template.helpers;
+
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class RenderableDate2 {
+public class RenderableDate {
 
     private final Date date;
     private final String format;
     private final String timezoneName;
 
-    public RenderableDate2(Date date, String format, String timezone) {
+    public RenderableDate(Date date, String format, String timezone) {
         this.date = date;
         this.format = format;
         this.timezoneName = timezone;
@@ -35,9 +36,12 @@ public class RenderableDate2 {
     @Override
     public String toString() {
         if (format != null) {
-            return format.equals("epoch-sec") ?
-                String.valueOf(date.getTime() / 1000) :
-                formatCustom();
+        	if(format.equals("epoch-sec")) {
+        		return String.valueOf(date.getTime()/1000);
+        	} else if (format.equals("epoch")) {
+        		return String.valueOf(date.getTime());
+        	}
+            return formatCustom();
         }
 
         return timezoneName != null ?

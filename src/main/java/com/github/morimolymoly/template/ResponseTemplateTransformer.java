@@ -1,3 +1,4 @@
+package com.github.morimolymoly.template;
 /*
  * Copyright (C) 2011 Thomas Akehurst
  *
@@ -13,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package test.maven_test;
+
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Helper;
@@ -27,7 +28,6 @@ import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.TextFile;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.RequestTemplateModel;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.Request;
@@ -36,6 +36,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
+import com.github.morimolymoly.template.helpers.WireMockHelpers;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -54,23 +56,23 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
     private final Handlebars handlebars;
 
     public ResponseTemplateTransformer() {
-        this(true, Collections.<String, Helper>emptyMap());
+        this(false, Collections.<String, Helper>emptyMap());
     }
 
     public ResponseTemplateTransformer(boolean global, String helperName, Helper helper) {
-        this(true, ImmutableMap.of(helperName, helper));
+        this(global, ImmutableMap.of(helperName, helper));
     }
 
     public ResponseTemplateTransformer(boolean global, Map<String, Helper> helpers) {
-        this(true, new Handlebars(), helpers);
+        this(global, new Handlebars(), helpers);
     }
 
     public ResponseTemplateTransformer(boolean global, Handlebars handlebars, Map<String, Helper> helpers) {
-        this.global = true;
+        this.global = global;
         this.handlebars = handlebars;
 
         for (StringHelpers helper: StringHelpers.values()) {
-            if (!helper.name().equals("now2")) {
+            if (!helper.name().equals("now")) {
                 this.handlebars.registerHelper(helper.name(), helper);
             }
         }
@@ -78,7 +80,7 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
         for (NumberHelper helper: NumberHelper.values()) {
             this.handlebars.registerHelper(helper.name(), helper);
         }
-
+        
         for (ConditionalHelpers helper: ConditionalHelpers.values()) {
         	this.handlebars.registerHelper(helper.name(), helper);
         }
@@ -86,7 +88,7 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
         this.handlebars.registerHelper(AssignHelper.NAME, new AssignHelper());
 
         //Add all available wiremock helpers
-        for(WireMockHelpers2 helper: WireMockHelpers2.values()){
+        for(WireMockHelpers helper: WireMockHelpers.values()){
             this.handlebars.registerHelper(helper.name(), helper);
         }
 
@@ -128,8 +130,10 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
 
         if (responseDefinition.getHeaders() != null) {
             Iterable<HttpHeader> newResponseHeaders = Iterables.transform(responseDefinition.getHeaders().all(), new Function<HttpHeader, HttpHeader>() {
+                @Override
                 public HttpHeader apply(HttpHeader input) {
                     List<String> newValues = Lists.transform(input.values(), new Function<String, String>() {
+                        @Override
                         public String apply(String input) {
                             Template template = uncheckedCompileTemplate(input);
                             return uncheckedApplyTemplate(template, model);
@@ -154,7 +158,6 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
     /**
      * Override this to add extra elements to the template model
      */
-    
     protected Map<String, Object> addExtraModelElements(Request request, ResponseDefinition responseDefinition, FileSource files, Parameters parameters) {
         return Collections.emptyMap();
     }
